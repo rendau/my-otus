@@ -12,6 +12,7 @@ func TestPushFrontToEmptyList(t *testing.T) {
 	i1 := l.PushFront(v1)
 
 	require.NotNil(t, i1)
+
 	require.Equal(t, v1, i1.Value())
 	require.Equal(t, uint64(1), l.Len())
 	require.Equal(t, l.First(), i1)
