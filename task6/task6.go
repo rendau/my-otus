@@ -39,7 +39,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	err := FileCopy(argFrom, argTo, argOffset, argLimit)
+	err := fileCopy(argFrom, argTo, argOffset, argLimit)
 	if err != nil {
 		os.Exit(1)
 	}

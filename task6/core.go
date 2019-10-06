@@ -26,12 +26,7 @@ func (o *writerWithLog) FinishProgress() {
 	fmt.Println()
 }
 
-/*
-FileCopy is function for copy files from src to dst.
-offset - is offset in src before copy
-limit - is limit in bytes length
-*/
-func FileCopy(src, dst string, offset, limit int64) error {
+func fileCopy(src, dst string, offset, limit int64) error {
 	var err error
 
 	var srcFile *os.File
