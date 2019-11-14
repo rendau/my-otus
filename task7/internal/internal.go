@@ -10,6 +10,9 @@ import (
 	"strings"
 )
 
+// ReadDir - reads dir and generates env-variables as:
+//	file-names - transforms to env-var name
+//	file-content - transforms to env-var value
 func ReadDir(dir string) (map[string]string, error) {
 	files, err := ioutil.ReadDir(dir)
 	if err != nil {
@@ -36,11 +39,14 @@ func ReadDir(dir string) (map[string]string, error) {
 	return res, nil
 }
 
+// RunCmd - runs command with args and apply env variables.
+//   returns exit-code of executing command
 func RunCmd(cmd []string, envs map[string]string, stdOut, stdErr io.Writer) int {
 	if len(cmd) == 0 {
 		log.Fatalln("Bad cmd")
 	}
 
+	// transforms env-map to env-slice as ["key=value", ...]
 	var env []string
 	for k, v := range envs {
 		env = append(env, k+"="+v)
