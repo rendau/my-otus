@@ -5,6 +5,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
+// RootCmd - cmd that is root ;)
 var RootCmd = &cobra.Command{
 	Use:   "clncnd",
 	Short: "CleanCalendar is a calendar micorservice demo",
