@@ -1,23 +1,27 @@
 package usecases
 
 import (
-	"github.com/rendau/my-otus/task8/internal/domain/interfaces/storage"
+	"github.com/rendau/my-otus/task8/internal/config"
+	"github.com/rendau/my-otus/task8/internal/interfaces"
 )
 
-// Usecases - type for root usecases
+// Usecases - is root level usecases
 type Usecases struct {
-	stg storage.Event
+	cfg *config.Config
+	stg interfaces.Storage
 
 	// modules
 	Event *Event
 }
 
-// CreateUsecases - creates root usecases instance
-func CreateUsecases(stg storage.Event) *Usecases {
-	return &Usecases{
+// CreateUsecases - creates root level usecases instance
+func CreateUsecases(cfg *config.Config, stg interfaces.Storage) *Usecases {
+	rUks := &Usecases{
+		cfg: cfg,
 		stg: stg,
-
-		// modules
-		Event: NewEvent(stg),
 	}
+
+	rUks.Event = CreateEvent(rUks)
+
+	return rUks
 }

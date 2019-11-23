@@ -1,2 +1,2 @@
 build:
-	go build -o clncnd main.go
+	go build -o calendar main.go

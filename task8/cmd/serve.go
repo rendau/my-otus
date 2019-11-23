@@ -13,10 +13,31 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 */
-package main
+package cmd
 
-import "github.com/rendau/my-otus/task8/cmd"
+import (
+	"fmt"
+	"github.com/spf13/cobra"
+	"log"
+)
 
-func main() {
-	cmd.Execute()
+// serveCmd represents the serve command
+var serveCmd = &cobra.Command{
+	Use:   "serve",
+	Short: "Serves calendar service",
+	Run: func(cmd *cobra.Command, args []string) {
+		cfg, err := parseConfig(cfgFile)
+		if err != nil {
+			log.Fatalln("Fail to parse config")
+		}
+
+		fmt.Println(cfg.HttpListen, cfg.LogFile, cfg.LogLevel)
+	},
+}
+
+func init() {
+	rootCmd.AddCommand(serveCmd)
+
+	serveCmd.Flags().StringVar(&cfgFile, "config", "", "config file eg. conf.yml")
+	_ = serveCmd.MarkFlagRequired("config")
 }

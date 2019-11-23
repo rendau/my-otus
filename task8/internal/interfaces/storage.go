@@ -1,12 +1,12 @@
-package storage
+package interfaces
 
 import (
 	"context"
 	"github.com/rendau/my-otus/task8/internal/domain/entities"
 )
 
-// Event - is interface of event for db-adapters
-type Event interface {
+// Storage - is interface of storage
+type Storage interface {
 	EventList(ctx context.Context, filter *entities.EventListFilter) ([]*entities.Event, error)
 	EventListCount(ctx context.Context, filter *entities.EventListFilter) (int64, error)
 	EventCreate(ctx context.Context, event *entities.Event) error
