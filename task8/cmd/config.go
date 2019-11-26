@@ -1,15 +1,23 @@
 package cmd
 
 import (
-	"github.com/rendau/my-otus/task8/internal/config"
 	"gopkg.in/yaml.v2"
 	"io/ioutil"
 )
 
-func parseConfig(configPath string) (*config.Config, error) {
-	res := &config.Config{
-		HttpListen: ":80",
-		LogFile:    "./log.log",
+type config struct {
+	Debug      bool
+	HTTPListen string
+
+	LogFile  string
+	LogLevel string // error | warn | info | debug
+}
+
+func parseConfig(configPath string) (*config, error) {
+	res := &config{
+		Debug:      false,
+		HTTPListen: ":80",
+		LogFile:    "",
 		LogLevel:   "warn",
 	}
 
@@ -20,7 +28,8 @@ func parseConfig(configPath string) (*config.Config, error) {
 
 	if len(confBytes) > 0 {
 		confFileObj := struct {
-			HttpListen string `yaml:"http_listen"`
+			Debug      bool   `yaml:"debug"`
+			HTTPListen string `yaml:"http_listen"`
 			LogFile    string `yaml:"log_file"`
 			LogLevel   string `yaml:"log_level"`
 		}{}
@@ -30,12 +39,16 @@ func parseConfig(configPath string) (*config.Config, error) {
 			return nil, err
 		}
 
-		if confFileObj.HttpListen != "" {
-			res.HttpListen = confFileObj.HttpListen
+		res.Debug = confFileObj.Debug
+
+		if confFileObj.HTTPListen != "" {
+			res.HTTPListen = confFileObj.HTTPListen
 		}
+
 		if confFileObj.LogFile != "" {
 			res.LogFile = confFileObj.LogFile
 		}
+
 		if confFileObj.LogLevel != "" {
 			res.LogLevel = confFileObj.LogLevel
 		}

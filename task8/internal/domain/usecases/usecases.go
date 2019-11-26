@@ -1,13 +1,12 @@
 package usecases
 
 import (
-	"github.com/rendau/my-otus/task8/internal/config"
 	"github.com/rendau/my-otus/task8/internal/interfaces"
 )
 
 // Usecases - is root level usecases
 type Usecases struct {
-	cfg *config.Config
+	log interfaces.Logger
 	stg interfaces.Storage
 
 	// modules
@@ -15,13 +14,13 @@ type Usecases struct {
 }
 
 // CreateUsecases - creates root level usecases instance
-func CreateUsecases(cfg *config.Config, stg interfaces.Storage) *Usecases {
-	rUks := &Usecases{
-		cfg: cfg,
+func CreateUsecases(log interfaces.Logger, stg interfaces.Storage) *Usecases {
+	rUcs := &Usecases{
+		log: log,
 		stg: stg,
 	}
 
-	rUks.Event = CreateEvent(rUks)
+	rUcs.Event = CreateEvent(rUcs)
 
-	return rUks
+	return rUcs
 }

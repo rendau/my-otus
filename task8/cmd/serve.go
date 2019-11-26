@@ -13,12 +13,21 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 */
+
 package cmd
 
 import (
-	"fmt"
+	"context"
+	"github.com/rendau/my-otus/task8/internal/adapters/logger"
+	"github.com/rendau/my-otus/task8/internal/adapters/rest"
+	"github.com/rendau/my-otus/task8/internal/adapters/storage/memdb"
+	"github.com/rendau/my-otus/task8/internal/domain/usecases"
 	"github.com/spf13/cobra"
 	"log"
+	"os"
+	"os/signal"
+	"syscall"
+	"time"
 )
 
 // serveCmd represents the serve command
@@ -31,7 +40,44 @@ var serveCmd = &cobra.Command{
 			log.Fatalln("Fail to parse config")
 		}
 
-		fmt.Println(cfg.HttpListen, cfg.LogFile, cfg.LogLevel)
+		//fmt.Println(cfg.LogFile)
+		lg, err := logger.NewLogger(cfg.LogFile, cfg.LogLevel, cfg.Debug, false)
+		if err != nil {
+			log.Fatalln("Fail to create logger")
+		}
+		defer lg.Sync()
+
+		db, err := memdb.NewMemDb(lg)
+		if err != nil {
+			lg.Fatalw("Fail to create mem-db", "error", err)
+		}
+
+		ucs := usecases.CreateUsecases(lg, db)
+
+		restAPI := rest.CreateAPI(lg, cfg.HTTPListen, ucs)
+
+		restAPI.Start()
+
+		time.Sleep(100 * time.Millisecond)
+
+		lg.Infof("Started listen, address: %s", cfg.HTTPListen)
+
+		stop := make(chan os.Signal, 1)
+		signal.Notify(stop, os.Interrupt, syscall.SIGTERM)
+		<-stop
+
+		lg.Info("Shutting down...")
+
+		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		defer func() {
+			cancel()
+		}()
+		err = restAPI.Shutdown(ctx)
+		if err != nil {
+			lg.Fatalw("Fail to shutdown rest-api", "error", err)
+		}
+
+		os.Exit(0)
 	},
 }
 

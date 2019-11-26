@@ -10,17 +10,17 @@ import (
 
 // Event - is type for event usecases
 type Event struct {
-	rUks *Usecases
+	rUcs *Usecases
 }
 
 // CreateEvent - creates new event usecases
-func CreateEvent(rUks *Usecases) *Event {
+func CreateEvent(rUcs *Usecases) *Event {
 	return &Event{
-		rUks: rUks,
+		rUcs: rUcs,
 	}
 }
 
-func (uks *Event) validate(ctx context.Context, event *entities.Event) error {
+func (ucs *Event) validate(ctx context.Context, event *entities.Event) error {
 	if event.Owner == "" {
 		return errors.ErrOwnerRequired
 	}
@@ -33,7 +33,7 @@ func (uks *Event) validate(ctx context.Context, event *entities.Event) error {
 	if event.EndTime.Before(event.StartTime) {
 		return errors.ErrEndDateLTStartDate
 	}
-	overlapEventCount, err := uks.rUks.stg.EventListCount(ctx, &entities.EventListFilter{
+	overlapEventCount, err := ucs.rUcs.stg.EventListCount(ctx, &entities.EventListFilter{
 		StartTimeLt: &event.StartTime,
 		EndTimeGt:   &event.StartTime,
 	})
@@ -47,12 +47,12 @@ func (uks *Event) validate(ctx context.Context, event *entities.Event) error {
 }
 
 // List - returns list of event
-func (uks *Event) List(ctx context.Context, filter *entities.EventListFilter) ([]*entities.Event, error) {
-	return uks.rUks.stg.EventList(ctx, filter)
+func (ucs *Event) List(ctx context.Context, filter *entities.EventListFilter) ([]*entities.Event, error) {
+	return ucs.rUcs.stg.EventList(ctx, filter)
 }
 
 // Create - creates event
-func (uks *Event) Create(ctx context.Context,
+func (ucs *Event) Create(ctx context.Context,
 	owner, title, text string, startTime time.Time, endTime time.Time) (*entities.Event, error) {
 	uuidID, err := uuid.NewV4()
 	if err != nil {
@@ -66,11 +66,11 @@ func (uks *Event) Create(ctx context.Context,
 		StartTime: startTime,
 		EndTime:   endTime,
 	}
-	err = uks.validate(ctx, event)
+	err = ucs.validate(ctx, event)
 	if err != nil {
 		return nil, err
 	}
-	err = uks.rUks.stg.EventCreate(ctx, event)
+	err = ucs.rUcs.stg.EventCreate(ctx, event)
 	if err != nil {
 		return nil, err
 	}
@@ -78,12 +78,12 @@ func (uks *Event) Create(ctx context.Context,
 }
 
 // Get - retrieves event
-func (uks *Event) Get(ctx context.Context, id string) (*entities.Event, error) {
-	return uks.rUks.stg.EventGet(ctx, id)
+func (ucs *Event) Get(ctx context.Context, id string) (*entities.Event, error) {
+	return ucs.rUcs.stg.EventGet(ctx, id)
 }
 
 // Update - updates event
-func (uks *Event) Update(ctx context.Context, id string,
+func (ucs *Event) Update(ctx context.Context, id string,
 	owner, title, text string, startTime time.Time, endTime time.Time) error {
 	event := &entities.Event{
 		ID:        id,
@@ -93,11 +93,11 @@ func (uks *Event) Update(ctx context.Context, id string,
 		StartTime: startTime,
 		EndTime:   endTime,
 	}
-	err := uks.validate(ctx, event)
+	err := ucs.validate(ctx, event)
 	if err != nil {
 		return err
 	}
-	err = uks.rUks.stg.EventUpdate(ctx, id, event)
+	err = ucs.rUcs.stg.EventUpdate(ctx, id, event)
 	if err != nil {
 		return err
 	}
@@ -105,6 +105,6 @@ func (uks *Event) Update(ctx context.Context, id string,
 }
 
 // Delete - deletes event
-func (uks *Event) Delete(ctx context.Context, id string) error {
-	return uks.rUks.stg.EventDelete(ctx, id)
+func (ucs *Event) Delete(ctx context.Context, id string) error {
+	return ucs.rUcs.stg.EventDelete(ctx, id)
 }
