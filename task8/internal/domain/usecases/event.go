@@ -54,10 +54,7 @@ func (ucs *Event) List(ctx context.Context, filter *entities.EventListFilter) ([
 // Create - creates event
 func (ucs *Event) Create(ctx context.Context,
 	owner, title, text string, startTime time.Time, endTime time.Time) (*entities.Event, error) {
-	uuidID, err := uuid.NewV4()
-	if err != nil {
-		return nil, err
-	}
+	uuidID := uuid.NewV4()
 	event := &entities.Event{
 		ID:        uuidID.String(),
 		Owner:     owner,
@@ -66,7 +63,7 @@ func (ucs *Event) Create(ctx context.Context,
 		StartTime: startTime,
 		EndTime:   endTime,
 	}
-	err = ucs.validate(ctx, event)
+	err := ucs.validate(ctx, event)
 	if err != nil {
 		return nil, err
 	}
