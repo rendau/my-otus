@@ -4,7 +4,6 @@ import (
 	"context"
 	"github.com/rendau/my-otus/task8/internal/domain/entities"
 	"github.com/rendau/my-otus/task8/internal/domain/errors"
-	"github.com/satori/go.uuid"
 	"time"
 )
 
@@ -54,9 +53,7 @@ func (ucs *Event) List(ctx context.Context, filter *entities.EventListFilter) ([
 // Create - creates event
 func (ucs *Event) Create(ctx context.Context,
 	owner, title, text string, startTime time.Time, endTime time.Time) (*entities.Event, error) {
-	uuidID := uuid.NewV4()
 	event := &entities.Event{
-		ID:        uuidID.String(),
 		Owner:     owner,
 		Title:     title,
 		Text:      text,
@@ -75,12 +72,12 @@ func (ucs *Event) Create(ctx context.Context,
 }
 
 // Get - retrieves event
-func (ucs *Event) Get(ctx context.Context, id string) (*entities.Event, error) {
+func (ucs *Event) Get(ctx context.Context, id int64) (*entities.Event, error) {
 	return ucs.rUcs.stg.EventGet(ctx, id)
 }
 
 // Update - updates event
-func (ucs *Event) Update(ctx context.Context, id string,
+func (ucs *Event) Update(ctx context.Context, id int64,
 	owner, title, text string, startTime time.Time, endTime time.Time) error {
 	event := &entities.Event{
 		ID:        id,
@@ -102,6 +99,6 @@ func (ucs *Event) Update(ctx context.Context, id string,
 }
 
 // Delete - deletes event
-func (ucs *Event) Delete(ctx context.Context, id string) error {
+func (ucs *Event) Delete(ctx context.Context, id int64) error {
 	return ucs.rUcs.stg.EventDelete(ctx, id)
 }

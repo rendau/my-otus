@@ -6,7 +6,7 @@ import (
 
 // Event - is type for event
 type Event struct {
-	ID        string
+	ID        int64
 	Owner     string
 	Title     string
 	Text      string

@@ -10,7 +10,7 @@ type Storage interface {
 	EventList(ctx context.Context, filter *entities.EventListFilter) ([]*entities.Event, error)
 	EventListCount(ctx context.Context, filter *entities.EventListFilter) (int64, error)
 	EventCreate(ctx context.Context, event *entities.Event) error
-	EventGet(ctx context.Context, id string) (*entities.Event, error)
-	EventUpdate(ctx context.Context, id string, event *entities.Event) error
-	EventDelete(ctx context.Context, id string) error
+	EventGet(ctx context.Context, id int64) (*entities.Event, error)
+	EventUpdate(ctx context.Context, id int64, event *entities.Event) error
+	EventDelete(ctx context.Context, id int64) error
 }

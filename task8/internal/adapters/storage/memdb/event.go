@@ -7,8 +7,9 @@ import (
 )
 
 type eventTableSt struct {
-	t  []*entities.Event
-	mu sync.RWMutex
+	t     []*entities.Event
+	idSeq int64
+	mu    sync.RWMutex
 }
 
 // EventList - list events
@@ -51,12 +52,14 @@ func (mdb *MemDb) EventListCount(ctx context.Context, filter *entities.EventList
 func (mdb *MemDb) EventCreate(ctx context.Context, event *entities.Event) error {
 	mdb.eventTable.mu.Lock()
 	defer mdb.eventTable.mu.Unlock()
+	mdb.eventTable.idSeq++
+	event.ID = mdb.eventTable.idSeq
 	mdb.eventTable.t = append(mdb.eventTable.t, event)
 	return nil
 }
 
 // EventGet - retrieves one event
-func (mdb *MemDb) EventGet(ctx context.Context, id string) (*entities.Event, error) {
+func (mdb *MemDb) EventGet(ctx context.Context, id int64) (*entities.Event, error) {
 	mdb.eventTable.mu.RLock()
 	defer mdb.eventTable.mu.RUnlock()
 	for _, e := range mdb.eventTable.t {
@@ -68,7 +71,7 @@ func (mdb *MemDb) EventGet(ctx context.Context, id string) (*entities.Event, err
 }
 
 // EventUpdate - updates event by id
-func (mdb *MemDb) EventUpdate(ctx context.Context, id string, event *entities.Event) error {
+func (mdb *MemDb) EventUpdate(ctx context.Context, id int64, event *entities.Event) error {
 	mdb.eventTable.mu.Lock()
 	defer mdb.eventTable.mu.Unlock()
 	for _, e := range mdb.eventTable.t {
@@ -86,7 +89,7 @@ func (mdb *MemDb) EventUpdate(ctx context.Context, id string, event *entities.Ev
 }
 
 // EventDelete - deletes event by id
-func (mdb *MemDb) EventDelete(ctx context.Context, id string) error {
+func (mdb *MemDb) EventDelete(ctx context.Context, id int64) error {
 	mdb.eventTable.mu.Lock()
 	defer mdb.eventTable.mu.Unlock()
 	newT := make([]*entities.Event, 0, len(mdb.eventTable.t))
