@@ -22,6 +22,9 @@ func (mdb *MemDb) EventList(ctx context.Context, filter *entities.EventListFilte
 			res = append(res, e)
 			continue
 		}
+		if filter.IDNE != nil && e.ID == *filter.IDNE {
+			continue
+		}
 		if filter.StartTimeLt != nil && !e.StartTime.Before(*filter.StartTimeLt) {
 			continue
 		}

@@ -6,16 +6,17 @@ import (
 
 // Event - is type for event
 type Event struct {
-	ID        int64
-	Owner     string
-	Title     string
-	Text      string
-	StartTime time.Time
-	EndTime   time.Time
+	ID        int64     `json:"id"`
+	Owner     string    `json:"owner"`
+	Title     string    `json:"title"`
+	Text      string    `json:"text"`
+	StartTime time.Time `json:"start_time"`
+	EndTime   time.Time `json:"end_time"`
 }
 
 // EventListFilter - is type for event-filter
 type EventListFilter struct {
+	IDNE        *int64     // if id is not equal to value
 	StartTimeLt *time.Time // if start time less than value
 	StartTimeGt *time.Time // if start time greater than value
 	EndTimeLt   *time.Time // if end time less than value

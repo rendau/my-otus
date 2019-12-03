@@ -32,7 +32,24 @@ func RespondJSONObj(w http.ResponseWriter, code int, obj interface{}) {
 	w.WriteHeader(code)
 	err := json.NewEncoder(w).Encode(obj)
 	if err != nil {
-		log.Panicln("Fail to encode json obj", err)
+		log.Println("Fail to encode json for response:", err)
+	}
+}
+
+// RespondAppJSONObj - sends application reply struct as json
+func RespondAppJSONObj(w http.ResponseWriter, code int, result interface{}, rErr interface{}) {
+	if rErr != nil {
+		RespondJSONObj(w, code, struct {
+			Error interface{} `json:"error"`
+		}{
+			Error: rErr,
+		})
+	} else {
+		RespondJSONObj(w, code, struct {
+			Result interface{} `json:"result"`
+		}{
+			Result: result,
+		})
 	}
 }
 
@@ -74,6 +91,11 @@ func Respond403(w http.ResponseWriter, detail string) {
 // Respond404 - sends 404 error
 func Respond404(w http.ResponseWriter, detail string) {
 	RespondError(w, 404, "not_found", detail)
+}
+
+// Respond500 - sends 500 error
+func Respond500(w http.ResponseWriter) {
+	RespondError(w, 500, "Internal Server Error", "")
 }
 
 // RespondJSONParseError - sends " parse" error
