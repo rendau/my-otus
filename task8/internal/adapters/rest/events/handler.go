@@ -15,36 +15,30 @@ func hListForDay(w http.ResponseWriter, r *http.Request) {
 	startTime := time.Now().Truncate(24 * time.Hour)
 	endTime := startTime.Add(24 * time.Hour)
 
-	filter := &entities.EventListFilter{
+	hListForFilter(w, r, &entities.EventListFilter{
 		StartTimeGt: &startTime,
 		StartTimeLt: &endTime,
-	}
-
-	hListForFilter(w, r, filter)
+	})
 }
 
 func hListForWeek(w http.ResponseWriter, r *http.Request) {
 	startTime := time.Now().Truncate(24 * time.Hour)
 	endTime := startTime.Add(7 * 24 * time.Hour)
 
-	filter := &entities.EventListFilter{
+	hListForFilter(w, r, &entities.EventListFilter{
 		StartTimeGt: &startTime,
 		StartTimeLt: &endTime,
-	}
-
-	hListForFilter(w, r, filter)
+	})
 }
 
 func hListForMonth(w http.ResponseWriter, r *http.Request) {
 	startTime := time.Now().Truncate(24 * time.Hour)
 	endTime := startTime.Add(30 * 24 * time.Hour)
 
-	filter := &entities.EventListFilter{
+	hListForFilter(w, r, &entities.EventListFilter{
 		StartTimeGt: &startTime,
 		StartTimeLt: &endTime,
-	}
-
-	hListForFilter(w, r, filter)
+	})
 }
 
 func hListForFilter(w http.ResponseWriter, r *http.Request, filter *entities.EventListFilter) {

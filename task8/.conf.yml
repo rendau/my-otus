@@ -1,3 +1,4 @@
 http_listen: ":80"
+grpc_listen: ":9090"
 log_file: "log.log"
 log_level: "warn"

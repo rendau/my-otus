@@ -1,0 +1,60 @@
+syntax = "proto3";
+
+import "google/protobuf/timestamp.proto";
+import "google/protobuf/empty.proto";
+
+option go_package = "grpc";
+
+message Event {
+    int64 id = 1;
+    string owner = 2;
+    string title = 3;
+    string text = 4;
+    google.protobuf.Timestamp start_time = 5;
+    google.protobuf.Timestamp end_time = 6;
+}
+
+message CreateEventRequest {
+    string owner = 1;
+    string title = 2;
+    string text = 3;
+    google.protobuf.Timestamp start_time = 4;
+    google.protobuf.Timestamp end_time = 5;
+}
+
+message CreateEventResponse {
+    oneof result {
+        int64 id = 1;
+        string error = 2;
+    }
+}
+
+message UpdateEventRequest {
+    int64 id = 1;
+    string owner = 2;
+    string title = 3;
+    string text = 4;
+    google.protobuf.Timestamp start_time = 5;
+    google.protobuf.Timestamp end_time = 6;
+}
+
+message UpdateEventResponse {
+    string error = 1;
+}
+
+message DeleteEventRequest {
+    int64 id = 1;
+}
+
+message ListEventResponse {
+    repeated Event events = 1;
+}
+
+service CalendarService {
+    rpc CreateEvent (CreateEventRequest) returns (CreateEventResponse);
+    rpc UpdateEvent (UpdateEventRequest) returns (UpdateEventResponse);
+    rpc DeleteEvent (DeleteEventRequest) returns (google.protobuf.Empty);
+    rpc ListEventForDay (google.protobuf.Empty) returns (ListEventResponse);
+    rpc ListEventForWeek (google.protobuf.Empty) returns (ListEventResponse);
+    rpc ListEventForMonth (google.protobuf.Empty) returns (ListEventResponse);
+}

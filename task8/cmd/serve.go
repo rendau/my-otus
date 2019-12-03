@@ -18,6 +18,7 @@ package cmd
 
 import (
 	"context"
+	"github.com/rendau/my-otus/task8/internal/adapters/grpc"
 	"github.com/rendau/my-otus/task8/internal/adapters/logger"
 	"github.com/rendau/my-otus/task8/internal/adapters/rest"
 	"github.com/rendau/my-otus/task8/internal/adapters/storage/memdb"
@@ -55,8 +56,10 @@ var serveCmd = &cobra.Command{
 		ucs := usecases.CreateUsecases(lg, db)
 
 		restAPI := rest.CreateAPI(lg, cfg.HTTPListen, ucs)
-
 		restAPI.Start()
+
+		grpcAPI := grpc.CreateAPI(lg, cfg.GRPCListen, ucs)
+		grpcAPI.Start()
 
 		time.Sleep(100 * time.Millisecond)
 

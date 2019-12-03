@@ -8,6 +8,7 @@ import (
 type config struct {
 	Debug      bool
 	HTTPListen string
+	GRPCListen string
 
 	LogFile  string
 	LogLevel string // error | warn | info | debug
@@ -30,6 +31,7 @@ func parseConfig(configPath string) (*config, error) {
 		confFileObj := struct {
 			Debug      bool   `yaml:"debug"`
 			HTTPListen string `yaml:"http_listen"`
+			GRPCListen string `yaml:"grpc_listen"`
 			LogFile    string `yaml:"log_file"`
 			LogLevel   string `yaml:"log_level"`
 		}{}
@@ -43,6 +45,10 @@ func parseConfig(configPath string) (*config, error) {
 
 		if confFileObj.HTTPListen != "" {
 			res.HTTPListen = confFileObj.HTTPListen
+		}
+
+		if confFileObj.GRPCListen != "" {
+			res.GRPCListen = confFileObj.GRPCListen
 		}
 
 		if confFileObj.LogFile != "" {
