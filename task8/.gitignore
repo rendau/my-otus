@@ -1,3 +1,5 @@
 calendar
 conf.yml
+test_conf.yml
 *.log
+.migrate_scripts

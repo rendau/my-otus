@@ -40,7 +40,7 @@ func mwRecovery(h http.Handler) http.Handler {
 					"Fail to handle http request",
 					"method", r.Method,
 					"url", r.URL,
-					"err", err,
+					"error", err,
 				)
 			}
 		}()

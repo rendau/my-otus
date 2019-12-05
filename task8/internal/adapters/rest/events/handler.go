@@ -83,15 +83,14 @@ func hCreate(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	var event *entities.Event
-	event, err = apiCtx.Ucs.Event.Create(
-		context.Background(),
-		pOwner,
-		pTitle,
-		pText,
-		startTime,
-		endTime,
-	)
+	event := &entities.Event{
+		Owner:     pOwner,
+		Title:     pTitle,
+		Text:      pText,
+		StartTime: startTime,
+		EndTime:   endTime,
+	}
+	err = apiCtx.Ucs.Event.Create(context.Background(), event)
 	if err != nil {
 		switch err.(type) {
 		case errors.EventError:
@@ -142,15 +141,15 @@ func hUpdate(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	err = apiCtx.Ucs.Event.Update(
-		context.Background(),
-		id,
-		pOwner,
-		pTitle,
-		pText,
-		startTime,
-		endTime,
-	)
+	event := &entities.Event{
+		ID:        id,
+		Owner:     pOwner,
+		Title:     pTitle,
+		Text:      pText,
+		StartTime: startTime,
+		EndTime:   endTime,
+	}
+	err = apiCtx.Ucs.Event.Update(context.Background(), event)
 	if err != nil {
 		switch err.(type) {
 		case errors.EventError:

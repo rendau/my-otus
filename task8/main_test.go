@@ -3,67 +3,120 @@ package main
 import (
 	"context"
 	"github.com/rendau/my-otus/task8/internal/adapters/logger"
-	"github.com/rendau/my-otus/task8/internal/adapters/storage/memdb"
+	"github.com/rendau/my-otus/task8/internal/adapters/storage/pg"
+	"github.com/rendau/my-otus/task8/internal/config"
 	"github.com/rendau/my-otus/task8/internal/domain/entities"
 	"github.com/rendau/my-otus/task8/internal/domain/errors"
 	"github.com/rendau/my-otus/task8/internal/domain/usecases"
 	"github.com/stretchr/testify/require"
 	"log"
+	"os"
 	"testing"
 	"time"
 )
 
-func TestList(t *testing.T) {
-	var st time.Time
-	var et time.Time
-	var e *entities.Event
-	var l []*entities.Event
+const testConfPath = "./test_conf.yml"
+
+var ucs *usecases.Usecases
+
+func TestMain(m *testing.M) {
+	cfg, err := config.ParseConfig(testConfPath)
+	if err != nil {
+		log.Fatalln("Fail to parse config")
+	}
 
 	lg, err := logger.NewLogger("", "", true, true)
 	if err != nil {
 		log.Fatalln("Fail to create logger")
 	}
+	defer lg.Sync()
 
-	db, err := memdb.NewMemDb(lg)
-	require.Nil(t, err)
+	err = pg.MigrationDo(cfg.PgDsn, cfg.PgMigrationsPath, "down")
+	if err != nil {
+		log.Fatalln("Fail to apply migrations, error:", err)
+	}
 
-	ucs := usecases.CreateUsecases(lg, db)
+	err = pg.MigrationDo(cfg.PgDsn, cfg.PgMigrationsPath, "up")
+	if err != nil {
+		log.Fatalln("Fail to apply migrations, error:", err)
+	}
+
+	db, err := pg.NewPostgresDb(cfg.PgDsn)
+	if err != nil {
+		log.Fatalln("Fail to create postgres-db, error:", err)
+	}
+
+	ucs = usecases.CreateUsecases(lg, db)
+
+	// Start tests
+	code := m.Run()
+
+	err = pg.MigrationDo(cfg.PgDsn, cfg.PgMigrationsPath, "down")
+	if err != nil {
+		log.Fatalln("Fail to apply migrations, error:", err)
+	}
+
+	os.Exit(code)
+}
+
+func TestList(t *testing.T) {
+	var l []*entities.Event
 
 	ctx := context.Background()
 
-	st = time.Now().Add(time.Hour)
-	et = time.Now().Add(2 * time.Hour)
-	e, err = ucs.Event.Create(ctx, "U1", "e1", "text", st, et)
+	var eCnt int // current count for comparison
+
+	l, err := ucs.Event.List(ctx, nil)
 	require.Nil(t, err)
+	eCnt = len(l)
+
+	e := &entities.Event{
+		Owner:     "U1",
+		Title:     "e1",
+		Text:      "text",
+		StartTime: time.Now().Add(time.Hour),
+		EndTime:   time.Now().Add(2 * time.Hour),
+	}
+	err = ucs.Event.Create(ctx, e)
+	require.Nil(t, err)
+
+	e1, err := ucs.Event.Get(ctx, e.ID)
+	require.Nil(t, err)
+	require.NotNil(t, e1)
+	require.Equal(t, e.Owner, e1.Owner)
+	require.Equal(t, e.Title, e1.Title)
+	require.Equal(t, e.Text, e1.Text)
+	require.Equal(t, e.StartTime.UTC(), e1.StartTime.UTC())
+	require.Equal(t, e.EndTime.UTC(), e1.EndTime.UTC())
 
 	l, err = ucs.Event.List(ctx, nil)
 	require.Nil(t, err)
-	require.Equal(t, 1, len(l))
+	require.Equal(t, eCnt+1, len(l))
 
-	st = time.Now().Add(3 * time.Hour)
+	st := time.Now().Add(3 * time.Hour)
 	l, err = ucs.Event.List(ctx, &entities.EventListFilter{StartTimeGt: &st})
 	require.Nil(t, err)
-	require.Equal(t, 0, len(l))
+	require.Equal(t, eCnt, len(l))
 
 	st = time.Now().Add(time.Minute)
 	l, err = ucs.Event.List(ctx, &entities.EventListFilter{StartTimeLt: &st})
 	require.Nil(t, err)
-	require.Equal(t, 0, len(l))
+	require.Equal(t, eCnt, len(l))
 
 	st = time.Now().Add(3 * time.Hour)
 	l, err = ucs.Event.List(ctx, &entities.EventListFilter{EndTimeGt: &st})
 	require.Nil(t, err)
-	require.Equal(t, 0, len(l))
+	require.Equal(t, eCnt, len(l))
 
 	st = time.Now().Add(time.Minute)
 	l, err = ucs.Event.List(ctx, &entities.EventListFilter{EndTimeLt: &st})
 	require.Nil(t, err)
-	require.Equal(t, 0, len(l))
+	require.Equal(t, eCnt, len(l))
 
 	st = time.Now().Add(90 * time.Minute)
 	l, err = ucs.Event.List(ctx, &entities.EventListFilter{StartTimeLt: &st, EndTimeGt: &st})
 	require.Nil(t, err)
-	require.Equal(t, 1, len(l))
+	require.Equal(t, eCnt+1, len(l))
 
 	err = ucs.Event.Delete(ctx, e.ID)
 	require.Nil(t, err)
@@ -75,32 +128,19 @@ func TestList(t *testing.T) {
 
 func TestCreate(t *testing.T) {
 	var err error
-	var st time.Time
-	var et time.Time
-	var e *entities.Event
-
-	lg, err := logger.NewLogger("", "", true, true)
-	if err != nil {
-		log.Fatalln("Fail to create logger")
-	}
-
-	db, err := memdb.NewMemDb(lg)
-	require.Nil(t, err)
-
-	ucs := usecases.CreateUsecases(lg, db)
 
 	ctx := context.Background()
 
 	// ideal case
-	st = time.Now().Add(time.Hour)
-	et = time.Now().Add(2 * time.Hour)
-	e, err = ucs.Event.Create(ctx, "U1", "e1", "text", st, et)
+	e := &entities.Event{
+		Owner:     "U1",
+		Title:     "e1",
+		Text:      "text",
+		StartTime: time.Now().Add(time.Hour),
+		EndTime:   time.Now().Add(2 * time.Hour),
+	}
+	err = ucs.Event.Create(ctx, e)
 	require.Nil(t, err)
-	require.Equal(t, "U1", e.Owner)
-	require.Equal(t, "e1", e.Title)
-	require.Equal(t, "text", e.Text)
-	require.Equal(t, st, e.StartTime)
-	require.Equal(t, et, e.EndTime)
 
 	err = ucs.Event.Delete(ctx, e.ID)
 	require.Nil(t, err)
@@ -165,7 +205,13 @@ func TestCreate(t *testing.T) {
 	}
 
 	for _, c := range errCases {
-		e, err = ucs.Event.Create(ctx, c.owner, c.title, c.text, c.st, c.et)
+		err = ucs.Event.Create(ctx, &entities.Event{
+			Owner:     c.owner,
+			Title:     c.title,
+			Text:      c.text,
+			StartTime: c.st,
+			EndTime:   c.et,
+		})
 		if c.err != nil {
 			require.NotNil(t, err)
 			require.Equal(t, c.err, err)

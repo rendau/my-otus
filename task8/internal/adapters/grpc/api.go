@@ -9,6 +9,7 @@ import (
 	"github.com/rendau/my-otus/task8/internal/domain/errors"
 	"github.com/rendau/my-otus/task8/internal/domain/usecases"
 	"github.com/rendau/my-otus/task8/internal/interfaces"
+	"github.com/rendau/my-otus/task8/proto"
 	"google.golang.org/grpc"
 	"net"
 	"time"
@@ -35,7 +36,7 @@ func CreateAPI(log interfaces.Logger, lAddr string, ucs *usecases.Usecases) *API
 func (a *API) Start() {
 	a.server = grpc.NewServer()
 
-	RegisterCalendarServiceServer(a.server, a)
+	proto.RegisterCalendarServiceServer(a.server, a)
 
 	go func() {
 		l, err := net.Listen("tcp", a.lAddr)
@@ -55,7 +56,7 @@ func (a *API) Shutdown() {
 }
 
 // CreateEvent - method for implement proto-spec, creates event
-func (a *API) CreateEvent(ctx context.Context, r *CreateEventRequest) (*CreateEventResponse, error) {
+func (a *API) CreateEvent(ctx context.Context, r *proto.CreateEventRequest) (*proto.CreateEventResponse, error) {
 	startTime, err := ptypes.Timestamp(r.StartTime)
 	if err != nil {
 		return nil, err
@@ -65,21 +66,28 @@ func (a *API) CreateEvent(ctx context.Context, r *CreateEventRequest) (*CreateEv
 		return nil, err
 	}
 
-	event, err := a.ucs.Event.Create(ctx, r.Owner, r.Title, r.Text, startTime, endTime)
+	event := &entities.Event{
+		Owner:     r.Owner,
+		Title:     r.Title,
+		Text:      r.Text,
+		StartTime: startTime,
+		EndTime:   endTime,
+	}
+	err = a.ucs.Event.Create(ctx, event)
 	if err != nil {
 		switch err.(type) {
 		case errors.EventError:
-			return &CreateEventResponse{Result: &CreateEventResponse_Error{Error: err.Error()}}, nil
+			return &proto.CreateEventResponse{Result: &proto.CreateEventResponse_Error{Error: err.Error()}}, nil
 		default:
 			return nil, err
 		}
 	}
 
-	return &CreateEventResponse{Result: &CreateEventResponse_Id{Id: event.ID}}, nil
+	return &proto.CreateEventResponse{Result: &proto.CreateEventResponse_Id{Id: event.ID}}, nil
 }
 
 // UpdateEvent - method for implement proto-spec, updates event
-func (a *API) UpdateEvent(ctx context.Context, r *UpdateEventRequest) (*UpdateEventResponse, error) {
+func (a *API) UpdateEvent(ctx context.Context, r *proto.UpdateEventRequest) (*proto.UpdateEventResponse, error) {
 	startTime, err := ptypes.Timestamp(r.StartTime)
 	if err != nil {
 		return nil, err
@@ -89,29 +97,29 @@ func (a *API) UpdateEvent(ctx context.Context, r *UpdateEventRequest) (*UpdateEv
 		return nil, err
 	}
 
-	err = a.ucs.Event.Update(
-		ctx,
-		r.Id,
-		r.Owner,
-		r.Title,
-		r.Text,
-		startTime,
-		endTime,
-	)
+	event := &entities.Event{
+		ID:        r.Id,
+		Owner:     r.Owner,
+		Title:     r.Title,
+		Text:      r.Text,
+		StartTime: startTime,
+		EndTime:   endTime,
+	}
+	err = a.ucs.Event.Update(ctx, event)
 	if err != nil {
 		switch err.(type) {
 		case errors.EventError:
-			return &UpdateEventResponse{Error: err.Error()}, nil
+			return &proto.UpdateEventResponse{Error: err.Error()}, nil
 		default:
 			return nil, err
 		}
 	}
 
-	return &UpdateEventResponse{}, nil
+	return &proto.UpdateEventResponse{}, nil
 }
 
 // DeleteEvent - method for implement proto-spec, deletes event
-func (a *API) DeleteEvent(ctx context.Context, r *DeleteEventRequest) (*empty.Empty, error) {
+func (a *API) DeleteEvent(ctx context.Context, r *proto.DeleteEventRequest) (*empty.Empty, error) {
 	err := a.ucs.Event.Delete(ctx, r.Id)
 	if err != nil {
 		return nil, err
@@ -121,7 +129,7 @@ func (a *API) DeleteEvent(ctx context.Context, r *DeleteEventRequest) (*empty.Em
 }
 
 // ListEventForDay - method for implement proto-spec, get list of events for day
-func (a *API) ListEventForDay(ctx context.Context, r *empty.Empty) (*ListEventResponse, error) {
+func (a *API) ListEventForDay(ctx context.Context, r *empty.Empty) (*proto.ListEventResponse, error) {
 	startTime := time.Now().Truncate(24 * time.Hour)
 	endTime := startTime.Add(24 * time.Hour)
 
@@ -132,7 +140,7 @@ func (a *API) ListEventForDay(ctx context.Context, r *empty.Empty) (*ListEventRe
 }
 
 // ListEventForWeek - method for implement proto-spec, get list of events for week
-func (a *API) ListEventForWeek(ctx context.Context, r *empty.Empty) (*ListEventResponse, error) {
+func (a *API) ListEventForWeek(ctx context.Context, r *empty.Empty) (*proto.ListEventResponse, error) {
 	startTime := time.Now().Truncate(24 * time.Hour)
 	endTime := startTime.Add(7 * 24 * time.Hour)
 
@@ -143,7 +151,7 @@ func (a *API) ListEventForWeek(ctx context.Context, r *empty.Empty) (*ListEventR
 }
 
 // ListEventForMonth - method for implement proto-spec, get list of events for month
-func (a *API) ListEventForMonth(ctx context.Context, r *empty.Empty) (*ListEventResponse, error) {
+func (a *API) ListEventForMonth(ctx context.Context, r *empty.Empty) (*proto.ListEventResponse, error) {
 	startTime := time.Now().Truncate(24 * time.Hour)
 	endTime := startTime.Add(30 * 24 * time.Hour)
 
@@ -153,13 +161,13 @@ func (a *API) ListEventForMonth(ctx context.Context, r *empty.Empty) (*ListEvent
 	})
 }
 
-func (a *API) listEventForFilter(ctx context.Context, filter *entities.EventListFilter) (*ListEventResponse, error) {
+func (a *API) listEventForFilter(ctx context.Context, filter *entities.EventListFilter) (*proto.ListEventResponse, error) {
 	events, err := a.ucs.Event.List(ctx, filter)
 	if err != nil {
 		return nil, err
 	}
 
-	var pbEvents []*Event
+	var pbEvents []*proto.Event
 	var pbStartTime *timestamp.Timestamp
 	var pbEndTime *timestamp.Timestamp
 	for _, e := range events {
@@ -171,7 +179,7 @@ func (a *API) listEventForFilter(ctx context.Context, filter *entities.EventList
 		if err != nil {
 			return nil, err
 		}
-		pbEvents = append(pbEvents, &Event{
+		pbEvents = append(pbEvents, &proto.Event{
 			Id:        e.ID,
 			Owner:     e.Owner,
 			Title:     e.Title,
@@ -181,5 +189,5 @@ func (a *API) listEventForFilter(ctx context.Context, filter *entities.EventList
 		})
 	}
 
-	return &ListEventResponse{Events: pbEvents}, nil
+	return &proto.ListEventResponse{Events: pbEvents}, nil
 }

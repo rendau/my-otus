@@ -55,9 +55,21 @@ func (mdb *MemDb) EventListCount(ctx context.Context, filter *entities.EventList
 func (mdb *MemDb) EventCreate(ctx context.Context, event *entities.Event) error {
 	mdb.eventTable.mu.Lock()
 	defer mdb.eventTable.mu.Unlock()
+
 	mdb.eventTable.idSeq++
-	event.ID = mdb.eventTable.idSeq
-	mdb.eventTable.t = append(mdb.eventTable.t, event)
+
+	dbEvent := &entities.Event{
+		ID:        mdb.eventTable.idSeq,
+		Owner:     event.Owner,
+		Title:     event.Title,
+		Text:      event.Text,
+		StartTime: event.StartTime,
+		EndTime:   event.EndTime,
+	}
+	mdb.eventTable.t = append(mdb.eventTable.t, dbEvent)
+
+	event.ID = dbEvent.ID
+
 	return nil
 }
 

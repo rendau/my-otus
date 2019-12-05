@@ -56,62 +56,45 @@ func (ucs *Event) validate(ctx context.Context, event *entities.Event) error {
 func (ucs *Event) List(ctx context.Context, filter *entities.EventListFilter) ([]*entities.Event, error) {
 	events, err := ucs.rUcs.stg.EventList(ctx, filter)
 	if err != nil {
-		ucs.rUcs.log.Errorw("Fail to get list of events", "err", err.Error())
+		ucs.rUcs.log.Errorw("Fail to get list of events", "error", err.Error())
 	}
 
 	return events, err
 }
 
 // Create - creates event
-func (ucs *Event) Create(ctx context.Context,
-	owner, title, text string, startTime, endTime time.Time) (*entities.Event, error) {
-	event := &entities.Event{
-		ID:        0,
-		Owner:     owner,
-		Title:     title,
-		Text:      text,
-		StartTime: startTime,
-		EndTime:   endTime,
-	}
+func (ucs *Event) Create(ctx context.Context, event *entities.Event) error {
+	event.ID = 0
 	err := ucs.validate(ctx, event)
 	if err != nil {
-		return nil, err
+		return err
 	}
 	err = ucs.rUcs.stg.EventCreate(ctx, event)
 	if err != nil {
-		ucs.rUcs.log.Errorw("Fail to create event", "err", err.Error())
-		return nil, err
+		ucs.rUcs.log.Errorw("Fail to create event", "error", err.Error())
+		return err
 	}
-	return event, nil
+	return nil
 }
 
 // Get - retrieves event
 func (ucs *Event) Get(ctx context.Context, id int64) (*entities.Event, error) {
 	events, err := ucs.rUcs.stg.EventGet(ctx, id)
 	if err != nil {
-		ucs.rUcs.log.Errorw("Fail to get event", "err", err.Error())
+		ucs.rUcs.log.Errorw("Fail to get event", "error", err.Error())
 	}
 	return events, err
 }
 
 // Update - updates event
-func (ucs *Event) Update(ctx context.Context, id int64,
-	owner, title, text string, startTime time.Time, endTime time.Time) error {
-	event := &entities.Event{
-		ID:        id,
-		Owner:     owner,
-		Title:     title,
-		Text:      text,
-		StartTime: startTime,
-		EndTime:   endTime,
-	}
+func (ucs *Event) Update(ctx context.Context, event *entities.Event) error {
 	err := ucs.validate(ctx, event)
 	if err != nil {
 		return err
 	}
-	err = ucs.rUcs.stg.EventUpdate(ctx, id, event)
+	err = ucs.rUcs.stg.EventUpdate(ctx, event.ID, event)
 	if err != nil {
-		ucs.rUcs.log.Errorw("Fail to update event", "err", err.Error())
+		ucs.rUcs.log.Errorw("Fail to update event", "error", err.Error())
 		return err
 	}
 	return nil
@@ -121,7 +104,7 @@ func (ucs *Event) Update(ctx context.Context, id int64,
 func (ucs *Event) Delete(ctx context.Context, id int64) error {
 	err := ucs.rUcs.stg.EventDelete(ctx, id)
 	if err != nil {
-		ucs.rUcs.log.Errorw("Fail to delete event", "err", err.Error())
+		ucs.rUcs.log.Errorw("Fail to delete event", "error", err.Error())
 	}
 	return err
 }

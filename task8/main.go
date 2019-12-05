@@ -15,7 +15,7 @@ limitations under the License.
 */
 package main
 
-//go:generate protoc -I=./proto --go_out=plugins=grpc:./internal/adapters/grpc ./proto/calendar.proto
+//go:generate protoc -I=./proto --go_out=plugins=grpc:./proto ./proto/calendar.proto
 
 import "github.com/rendau/my-otus/task8/cmd"
 
