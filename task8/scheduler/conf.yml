@@ -1,0 +1,4 @@
+debug: true
+pg_dsn: "postgres://suser:1234567@localhost:5432/otus_calendar?sslmode=disable"
+rmq_dsn: "amqp://guest:guest@localhost:5672/"
+log_level: "info"

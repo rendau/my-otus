@@ -1,6 +1,0 @@
-http_listen: ":80"
-grpc_listen: ":9090"
-pg_dsn: "postgres://user:pass@host:5432/db?sslmode=disable"
-pg_migrations_path: "file://./migrations"
-log_file: "log.log"
-log_level: "warn"
