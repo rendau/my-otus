@@ -1,2 +1,2 @@
 build:
-	go build -o sender main.go
+	go build -o calendar_sender main.go

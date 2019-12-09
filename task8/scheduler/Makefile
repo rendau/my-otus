@@ -1,2 +1,2 @@
 build:
-	go build -o scheduler main.go
+	go build -o calendar_scheduler main.go

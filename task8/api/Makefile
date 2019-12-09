@@ -1,2 +1,2 @@
 build:
-	go build -o calendar main.go
+	go build -o calendar_api main.go

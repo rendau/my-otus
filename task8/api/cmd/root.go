@@ -20,7 +20,7 @@ import (
 var cfgFile string
 
 var rootCmd = &cobra.Command{
-	Use: "calendar",
+	Use: "calendar_api",
 	Run: func(cmd *cobra.Command, args []string) {
 		lg, err := logger.NewLogger(
 			viper.GetString("log_file"),
