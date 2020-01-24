@@ -4,9 +4,13 @@ import (
 	"encoding/json"
 	"github.com/rendau/my-otus/task8/scheduler/internal/domain/entities"
 	"github.com/streadway/amqp"
+	"time"
 )
 
-const queueName = "event_notify"
+const (
+	reconnectionTimout = 30 * time.Second
+	queueName          = "event_notify"
+)
 
 // Rmq - is type for rabbit-mq client
 type Rmq struct {
@@ -20,7 +24,7 @@ func NewRmq(dsn string) (*Rmq, error) {
 
 	res := &Rmq{}
 
-	res.con, err = amqp.Dial(dsn)
+	res.con, err = res.connectWithWait(dsn, reconnectionTimout)
 	if err != nil {
 		return nil, err
 	}
@@ -43,6 +47,25 @@ func NewRmq(dsn string) (*Rmq, error) {
 	}
 
 	return res, nil
+}
+
+func (r *Rmq) connectWithWait(dsn string, timeout time.Duration) (*amqp.Connection, error) {
+	var err error
+	var res *amqp.Connection
+	var tryCnt int
+
+	deadline := time.Now().Add(timeout)
+
+	for tryCnt < 2 || time.Now().Before(deadline) {
+		tryCnt++
+		res, err = amqp.Dial(dsn)
+		if err == nil {
+			break
+		}
+		time.Sleep(time.Second)
+	}
+
+	return res, err
 }
 
 // PublishEventNotification - publishes event to mq

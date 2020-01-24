@@ -1,12 +1,8 @@
 package pg
 
 import (
-	"errors"
-	"github.com/golang-migrate/migrate"
 	// driver for migration
-	_ "github.com/golang-migrate/migrate/database/postgres"
-	_ "github.com/golang-migrate/migrate/source/file"
-	_ "github.com/jackc/pgx/stdlib"
+	_ "github.com/jackc/pgx/v4/stdlib"
 	"github.com/jmoiron/sqlx"
 	"time"
 )
@@ -22,7 +18,7 @@ func NewPostgresDb(dsn string) (*PostgresDb, error) {
 
 	res := &PostgresDb{}
 
-	res.db, err = sqlx.Open("postgres", dsn)
+	res.db, err = sqlx.Open("pgx", dsn)
 	if err != nil {
 		return nil, err
 	}
@@ -32,29 +28,4 @@ func NewPostgresDb(dsn string) (*PostgresDb, error) {
 	res.db.SetConnMaxLifetime(10 * time.Minute)
 
 	return res, nil
-}
-
-// MigrationDo - applies or reverts migrations
-func MigrationDo(dsn, migrationPath, cmd string) error {
-	m, err := migrate.New(migrationPath, dsn)
-	if err != nil {
-		return err
-	}
-
-	switch cmd {
-	case "up":
-		err = m.Up()
-		break
-	case "down":
-		err = m.Down()
-		break
-	default:
-		return errors.New("bad command")
-	}
-
-	if err != nil && err != migrate.ErrNoChange {
-		return err
-	}
-
-	return nil
 }

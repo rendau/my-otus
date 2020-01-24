@@ -31,15 +31,6 @@ var rootCmd = &cobra.Command{
 		}
 		defer lg.Sync()
 
-		err = pg.MigrationDo(
-			viper.GetString("pg_dsn"),
-			viper.GetString("pg_migrations_path"),
-			"up",
-		)
-		if err != nil {
-			lg.Fatalw("Fail to apply migrations", "error", err)
-		}
-
 		db, err := pg.NewPostgresDb(viper.GetString("pg_dsn"))
 		if err != nil {
 			lg.Fatalw("Fail to create postgres-db", "error", err)
@@ -91,7 +82,6 @@ func initConfig() {
 	viper.SetDefault("debug", "false")
 	viper.SetDefault("http_listen", ":80")
 	viper.SetDefault("grpc_listen", ":8080")
-	viper.SetDefault("pg_migrations_path", "file://./migrations")
 	viper.SetDefault("log_level", "warn")
 
 	viper.AutomaticEnv() // read in environment variables that match

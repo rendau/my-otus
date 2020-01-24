@@ -1,0 +1,61 @@
+version: '3.7'
+
+services:
+  calendar_pg:
+    image: postgres:11
+    container_name: calendar_pg
+    environment:
+      POSTGRES_PASSWORD: 12345
+    expose:
+      - "5432"
+    networks:
+      calendar-net:
+
+  calendar_pg_migration:
+    image: migrate/migrate:latest
+    container_name: calendar_pg_migration
+    entrypoint:
+      - "sh"
+      - "-c"
+      - "`while ! /migrate -path /migrations -database postgres://postgres:12345@calendar_pg:5432/postgres?sslmode=disable up; do sleep 1; done;`"
+    volumes:
+      - "./api/migrations:/migrations"
+    networks:
+      calendar-net:
+
+  calendar_rmq:
+    image: rabbitmq:alpine
+    container_name: calendar_rmq
+    expose:
+      - "5672"
+    networks:
+      calendar-net:
+
+  calendar_api:
+    image: calendar_api:latest
+    container_name: calendar_api
+    build:
+      context: ./api
+      dockerfile: Dockerfile
+    environment:
+      PG_DSN: postgres://postgres:12345@calendar_pg:5432/postgres?sslmode=disable
+    ports:
+      - "8888:80"
+    networks:
+      calendar-net:
+
+  calendar_scheduler:
+    image: calendar_scheduler:latest
+    container_name: calendar_scheduler
+    build:
+      context: ./scheduler
+      dockerfile: Dockerfile
+    environment:
+      PG_DSN: postgres://postgres:12345@calendar_pg:5432/postgres?sslmode=disable
+      RMQ_DSN: amqp://guest:guest@calendar_rmq:5672/
+    networks:
+      calendar-net:
+
+networks:
+  calendar-net:
+    name: calendar-net

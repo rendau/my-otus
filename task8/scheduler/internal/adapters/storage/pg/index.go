@@ -2,9 +2,7 @@ package pg
 
 import (
 	// driver for migration
-	_ "github.com/golang-migrate/migrate/database/postgres"
-	_ "github.com/golang-migrate/migrate/source/file"
-	_ "github.com/jackc/pgx/stdlib"
+	_ "github.com/jackc/pgx/v4/stdlib"
 	"github.com/jmoiron/sqlx"
 	"time"
 )
@@ -20,7 +18,7 @@ func NewPostgresDb(dsn string) (*PostgresDb, error) {
 
 	res := &PostgresDb{}
 
-	res.db, err = sqlx.Open("postgres", dsn)
+	res.db, err = sqlx.Open("pgx", dsn)
 	if err != nil {
 		return nil, err
 	}
