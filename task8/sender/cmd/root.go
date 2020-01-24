@@ -13,8 +13,6 @@ import (
 	"syscall"
 )
 
-var cfgFile string
-
 var rootCmd = &cobra.Command{
 	Use: "sender",
 	Run: func(cmd *cobra.Command, args []string) {
@@ -74,18 +72,16 @@ func Execute() {
 
 func init() {
 	cobra.OnInitialize(initConfig)
-
-	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file")
 }
 
 func initConfig() {
 	viper.SetDefault("log_level", "warn")
 
-	if cfgFile != "" {
-		viper.SetConfigFile(cfgFile)
-	}
-
 	viper.AutomaticEnv() // read in environment variables that match
+
+	if viper.GetString("conf_path") != "" {
+		viper.SetConfigFile(viper.GetString("conf_path"))
+	}
 
 	// If a config file is found, read it in.
 	if err := viper.ReadInConfig(); err == nil {

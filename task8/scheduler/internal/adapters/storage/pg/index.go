@@ -1,10 +1,16 @@
 package pg
 
 import (
+	"context"
 	// driver for migration
 	_ "github.com/jackc/pgx/v4/stdlib"
 	"github.com/jmoiron/sqlx"
 	"time"
+)
+
+const (
+	connectionWaitTimout = 30 * time.Second
+	migrationWaitTimout  = 30 * time.Second
 )
 
 // PostgresDb - is type for postgres-db
@@ -18,7 +24,14 @@ func NewPostgresDb(dsn string) (*PostgresDb, error) {
 
 	res := &PostgresDb{}
 
-	res.db, err = sqlx.Open("pgx", dsn)
+	connectionContext, _ := context.WithTimeout(context.Background(), connectionWaitTimout)
+	res.db, err = res.connectionWait(dsn, connectionContext)
+	if err != nil {
+		return nil, err
+	}
+
+	migrationContext, _ := context.WithTimeout(context.Background(), migrationWaitTimout)
+	err = res.migrationWait(migrationContext)
 	if err != nil {
 		return nil, err
 	}
@@ -28,4 +41,36 @@ func NewPostgresDb(dsn string) (*PostgresDb, error) {
 	res.db.SetConnMaxLifetime(10 * time.Minute)
 
 	return res, nil
+}
+
+func (pdb *PostgresDb) connectionWait(dsn string, ctx context.Context) (*sqlx.DB, error) {
+	res, err := sqlx.Open("pgx", dsn)
+	if err != nil {
+		return nil, err
+	}
+
+	for {
+		err = res.PingContext(ctx)
+		if err == nil || err == ctx.Err() {
+			break
+		}
+		time.Sleep(time.Second)
+	}
+
+	return res, err
+}
+
+func (pdb *PostgresDb) migrationWait(ctx context.Context) error {
+	var err error
+	var cnt uint32
+
+	for {
+		err := pdb.db.GetContext(ctx, &cnt, `select count(*) from event`)
+		if err == nil || err == ctx.Err() {
+			break
+		}
+		time.Sleep(time.Second)
+	}
+
+	return err
 }

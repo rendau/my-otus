@@ -56,7 +56,7 @@ func (ucs *Core) run() {
 			return
 		}
 
-		ucs.log.Infof("Message from mq: %+v", event)
+		ucs.log.Warnf("Message from mq: %+v\n", event)
 	}
 }
 
