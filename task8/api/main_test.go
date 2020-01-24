@@ -33,24 +33,6 @@ func TestMain(m *testing.M) {
 	}
 	defer lg.Sync()
 
-	err = pg.MigrationDo(
-		viper.GetString("pg_dsn"),
-		viper.GetString("pg_migrations_path"),
-		"down",
-	)
-	if err != nil {
-		log.Fatalln("Fail to apply migrations, error:", err)
-	}
-
-	err = pg.MigrationDo(
-		viper.GetString("pg_dsn"),
-		viper.GetString("pg_migrations_path"),
-		"up",
-	)
-	if err != nil {
-		log.Fatalln("Fail to apply migrations, error:", err)
-	}
-
 	db, err := pg.NewPostgresDb(viper.GetString("pg_dsn"))
 	if err != nil {
 		log.Fatalln("Fail to create postgres-db, error:", err)
@@ -60,15 +42,6 @@ func TestMain(m *testing.M) {
 
 	// Start tests
 	code := m.Run()
-
-	err = pg.MigrationDo(
-		viper.GetString("pg_dsn"),
-		viper.GetString("pg_migrations_path"),
-		"down",
-	)
-	if err != nil {
-		log.Fatalln("Fail to apply migrations, error:", err)
-	}
 
 	os.Exit(code)
 }
