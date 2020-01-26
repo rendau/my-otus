@@ -50,7 +50,7 @@ var rootCmd = &cobra.Command{
 		signal.Notify(stop, os.Interrupt, syscall.SIGTERM)
 		<-stop
 
-		lg.Info("Shutting down...")
+		lg.Warn("Shutting down...")
 
 		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 		defer func() {
