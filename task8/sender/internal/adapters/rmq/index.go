@@ -9,8 +9,8 @@ import (
 )
 
 const (
-	connectionWaitTimout = 30 * time.Second
-	queueName            = "event_notify"
+	connectionWaitTimeout = 30 * time.Second
+	queueName             = "event_notify"
 )
 
 // Rmq - is type for rabbit-mq client
@@ -26,7 +26,7 @@ func NewRmq(dsn string) (*Rmq, error) {
 
 	res := &Rmq{}
 
-	res.con, err = res.connectionWait(dsn, connectionWaitTimout)
+	res.con, err = res.connectionWait(dsn, connectionWaitTimeout)
 	if err != nil {
 		return nil, err
 	}

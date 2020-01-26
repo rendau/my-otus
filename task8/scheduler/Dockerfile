@@ -20,4 +20,4 @@ COPY --from=builder /app/cmd/build/* ./
 
 EXPOSE 80
 
-ENTRYPOINT ["./calendar_scheduler"]
+CMD ["./calendar_scheduler"]

@@ -1,25 +1,35 @@
 package main
 
 import (
-	"github.com/DATA-DOG/godog"
+	"github.com/rendau/my-otus/task8/integration_tests/internal"
+	"github.com/spf13/viper"
 	"os"
 	"testing"
 )
 
+const (
+	outFormat       = "progress"
+	featuresDirPath = "gherkin/features"
+)
+
 func TestMain(m *testing.M) {
-	//fmt.Println("Wait 5s for service availability...")
-	//time.Sleep(5 * time.Second)
+	viper.AutomaticEnv()
 
-	status := godog.RunWithOptions("integration", func(s *godog.Suite) {
-		FeatureContext(s)
-	}, godog.Options{
-		Format:    "pretty",
-		Paths:     []string{"gherkin/features"},
-		Randomize: 0,
-	})
+	sc := m.Run()
 
-	if st := m.Run(); st > status {
-		status = st
+	os.Exit(sc)
+}
+
+func TestIntegration(t *testing.T) {
+	tests := internal.NewTests(
+		viper.GetString("api_url"),
+	)
+
+	status := tests.Run(
+		outFormat,
+		featuresDirPath,
+	)
+	if status != 0 {
+		t.Fail()
 	}
-	os.Exit(status)
 }

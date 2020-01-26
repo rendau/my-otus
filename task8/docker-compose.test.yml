@@ -2,68 +2,77 @@ version: '3.7'
 
 services:
   calendar_pg:
-    image: postgres:11
     container_name: calendar_pg
+    image: postgres:11
     environment:
       POSTGRES_PASSWORD: 12345
     expose:
       - "5432"
     networks:
-      calendar-net:
+      calendar-test-net:
 
   calendar_pg_migration:
-    image: migrate/migrate:latest
     container_name: calendar_pg_migration
+    image: migrate/migrate:latest
     entrypoint:
       - "sh"
       - "-c"
-      - "`while ! /migrate -path /migrations -database postgres://postgres:12345@calendar_pg:5432/postgres?sslmode=disable up; do sleep 2; done;`"
+      - "`while ! /migrate -path /migrations -database postgres://postgres:12345@calendar_pg:5432/postgres?sslmode=disable up; do sleep 2; done; sleep 3600;`"
     volumes:
       - "./api/migrations:/migrations"
+    depends_on:
+      - calendar_pg
     networks:
-      calendar-net:
+      calendar-test-net:
 
   calendar_rmq:
-    image: rabbitmq:alpine
     container_name: calendar_rmq
+    image: rabbitmq:alpine
     expose:
       - "5672"
     networks:
-      calendar-net:
+      calendar-test-net:
 
   calendar_api:
-    image: calendar_api:latest
     container_name: calendar_api
+    image: calendar_api:latest
     build: ./api
     environment:
       LOG_LEVEL: debug
       PG_DSN: postgres://postgres:12345@calendar_pg:5432/postgres?sslmode=disable
     ports:
       - "8888:80"
+    depends_on:
+      - calendar_pg_migration
     networks:
-      calendar-net:
+      calendar-test-net:
 
   calendar_scheduler:
-    image: calendar_scheduler:latest
     container_name: calendar_scheduler
+    image: calendar_scheduler:latest
     build: ./scheduler
     environment:
       LOG_LEVEL: debug
       PG_DSN: postgres://postgres:12345@calendar_pg:5432/postgres?sslmode=disable
       RMQ_DSN: amqp://guest:guest@calendar_rmq:5672/
+    depends_on:
+      - calendar_pg_migration
+      - calendar_rmq
     networks:
-      calendar-net:
+      calendar-test-net:
 
-  calendar_sender:
-    image: calendar_sender:latest
-    container_name: calendar_sender
-    build: ./sender
+  calendar_tests:
+    container_name: calendar_tests
+    image: calendar_tests:latest
+    build: ./integration_tests
     environment:
-      LOG_LEVEL: debug
-      RMQ_DSN: amqp://guest:guest@calendar_rmq:5672/
+      API_URL: http://calendar_api
+    depends_on:
+      - calendar_api
+      - calendar_scheduler
     networks:
-      calendar-net:
+      calendar-test-net:
 
 networks:
-  calendar-net:
-    name: calendar-net
+  calendar-test-net:
+    name: calendar-test-net

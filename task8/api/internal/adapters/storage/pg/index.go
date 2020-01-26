@@ -9,8 +9,8 @@ import (
 )
 
 const (
-	connectionWaitTimout = 5 * time.Second
-	migrationWaitTimout  = 30 * time.Second
+	connectionWaitTimeout = 5 * time.Second
+	migrationWaitTimeout  = 30 * time.Second
 )
 
 // PostgresDb - is type for memory-db
@@ -24,13 +24,13 @@ func NewPostgresDb(dsn string) (*PostgresDb, error) {
 
 	res := &PostgresDb{}
 
-	connectionContext, _ := context.WithTimeout(context.Background(), connectionWaitTimout)
+	connectionContext, _ := context.WithTimeout(context.Background(), connectionWaitTimeout)
 	res.db, err = res.connectionWait(dsn, connectionContext)
 	if err != nil {
 		return nil, err
 	}
 
-	migrationContext, _ := context.WithTimeout(context.Background(), migrationWaitTimout)
+	migrationContext, _ := context.WithTimeout(context.Background(), migrationWaitTimeout)
 	err = res.migrationWait(migrationContext)
 	if err != nil {
 		return nil, err

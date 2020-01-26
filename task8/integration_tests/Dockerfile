@@ -8,7 +8,7 @@ RUN go mod download
 
 COPY . .
 
-RUN make
+RUN go test -c -o calendar_tests
 
 
 
@@ -16,8 +16,7 @@ FROM debian:stable
 
 WORKDIR /app
 
-COPY --from=builder /app/cmd/build/* ./
+COPY --from=builder /app/calendar_tests ./
+COPY gherkin ./gherkin
 
-EXPOSE 80
-
-CMD ["./calendar_sender"]
+CMD ["./calendar_tests"]

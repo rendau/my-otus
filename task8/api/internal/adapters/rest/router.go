@@ -11,5 +11,9 @@ func createRouter(a *API) http.Handler {
 
 	events.Router(r.PathPrefix("/events").Subrouter())
 
+	r.HandleFunc("/ready", func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(200)
+	})
+
 	return middleware(r, a)
 }

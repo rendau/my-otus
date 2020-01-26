@@ -20,4 +20,4 @@ COPY --from=builder /app/cmd/build/* ./
 
 EXPOSE 80
 
-ENTRYPOINT ["./calendar_api"]
+CMD ["./calendar_api"]
