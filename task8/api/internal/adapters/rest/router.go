@@ -6,7 +6,7 @@ import (
 	"net/http"
 )
 
-func createRouter(a *API) http.Handler {
+func (a *API) createRouter(withMetrics bool) http.Handler {
 	r := mux.NewRouter()
 
 	events.Router(r.PathPrefix("/events").Subrouter())
@@ -15,5 +15,5 @@ func createRouter(a *API) http.Handler {
 		w.WriteHeader(200)
 	})
 
-	return middleware(r, a)
+	return a.middleware(r, withMetrics)
 }

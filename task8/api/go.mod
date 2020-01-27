@@ -7,6 +7,8 @@ require (
 	github.com/gorilla/mux v1.7.3
 	github.com/jackc/pgx/v4 v4.3.0
 	github.com/jmoiron/sqlx v1.2.0
+	github.com/prometheus/client_golang v1.3.0
+	github.com/slok/go-http-metrics v0.6.0
 	github.com/spf13/cobra v0.0.5
 	github.com/spf13/viper v1.6.2
 	github.com/stretchr/testify v1.4.0

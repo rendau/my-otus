@@ -24,10 +24,44 @@ services:
       calendar-net:
 
   calendar_rmq:
-    image: rabbitmq:alpine
+    image: rabbitmq:management-alpine
     container_name: calendar_rmq
+    ports:
+      - "15672:15672"
     expose:
       - "5672"
+      - "15672"
+    volumes:
+      - ./rmq_plugins.txt:/etc/rabbitmq/enabled_plugins
+    networks:
+      calendar-net:
+
+  calendar_prom:
+    image: prom/prometheus:latest
+    container_name: calendar_prom
+    command:
+      - '--config.file=/etc/prometheus/conf.yml'
+      - '--web.enable-lifecycle'
+      - '--storage.tsdb.retention.time=2d'
+    ports:
+      - "7744:9090"
+    volumes:
+      - ./prom_conf.yml:/etc/prometheus/conf.yml
+    networks:
+      calendar-net:
+
+  calendar_pg_exporter:
+    image: wrouesnel/postgres_exporter:latest
+    container_name: calendar_pg_exporter
+    environment:
+      PG_EXPORTER_WEB_LISTEN_ADDRESS: :9393
+      DATA_SOURCE_NAME: postgres://postgres:12345@calendar_pg:5432/postgres?sslmode=disable
+      PG_EXPORTER_DISABLE_SETTINGS_METRICS: "true"
+      PG_EXPORTER_EXTEND_QUERY_PATH: /pr_query.yml
+    expose:
+      - "9393"
+    volumes:
+      - ./prom_pg_query.yml:/pr_query.yml
     networks:
       calendar-net:
 
@@ -38,6 +72,9 @@ services:
     environment:
       LOG_LEVEL: debug
       PG_DSN: postgres://postgres:12345@calendar_pg:5432/postgres?sslmode=disable
+      M_HTTP_LISTEN: :9102
+    expose:
+      - "9102"
     ports:
       - "8888:80"
     networks:

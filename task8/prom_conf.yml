@@ -1,0 +1,16 @@
+global:
+  scrape_interval: 15s
+
+scrape_configs:
+  - job_name: 'calendar-api'
+    scrape_interval: 5s
+    static_configs:
+      - targets: ['calendar_api:9102']
+  - job_name: 'calendar-pg'
+    scrape_interval: 5s
+    static_configs:
+      - targets: ['calendar_pg_exporter:9393']
+  - job_name: 'calendar-rmq'
+    scrape_interval: 5s
+    static_configs:
+      - targets: ['calendar_rmq:15692']

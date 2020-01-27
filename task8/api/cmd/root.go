@@ -38,7 +38,12 @@ var rootCmd = &cobra.Command{
 
 		ucs := usecases.CreateUsecases(lg, db)
 
-		restAPI := rest.CreateAPI(lg, viper.GetString("http_listen"), ucs)
+		restAPI := rest.CreateAPI(
+			lg,
+			viper.GetString("http_listen"),
+			viper.GetString("m_http_listen"),
+			ucs,
+		)
 		restAPI.Start()
 
 		grpcAPI := grpc.CreateAPI(lg, viper.GetString("grpc_listen"), ucs)
@@ -50,7 +55,7 @@ var rootCmd = &cobra.Command{
 		signal.Notify(stop, os.Interrupt, syscall.SIGTERM)
 		<-stop
 
-		lg.Warn("Shutting down...")
+		lg.Info("Shutting down...")
 
 		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 		defer func() {
